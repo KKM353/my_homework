@@ -344,4 +344,135 @@
 			<3> 메모장 붙여넣기 
 			    #olLiveIssueKeyword > li:nth-child(1) > a > span.txt_rank
 
-		6) 주식 데이터 크롤링 
+		6) 주식 데이터 크롤링 ( 'D.py' )
+		   
+				    
+	(2) Selenium		    
+		1) 환경설정 
+			<1> (env_crawling) C:\~>pip install selenium
+			<2> Web Driver 다운/설치 
+				1> 크롬 버젼 확인 
+					( 메뉴 -> 도움말 -> Chrome정보 ) #크롬버젼: 103.0.5060.134
+				2> chromedriver_win32.zip 다운 
+					( https://chromedriver.chromium.org/downloads )  #드라이버버젼:103.0.5060.53
+				3> 설치 
+					chromedriver.exe
+				4> Code 실행 
+
+		2) 구글검색어 테스트 ( 'F.py' )
+
+		3) 페이북로그인 테스트 ( 'G.py' )
+		    <1> 로긴폼의 email input 에 오른쪽 마우스 -> '검사' 
+			<2> 만약.. 바로 꺼진다면.. chromedriver.exe 버젼과 크롬버젼이 맞지 않는 거임
+		
+		4) 구글 이미지 다운로드 
+		    <1> 1개 이미지 다운로드 ( 'H.py' ) 
+			<2> n개 이미지 다운로드 ( 'I.py') : 45개 
+			<3> 스크롤 다운하면서 n개 이미지 다운로드 ( 'J.py' ) : 45개 초과 
+			<4> Xpath이용 이미지 다운로드 ( 'K.py' ) : 45개 초과
+				1> '검사 -> Copy -> Copy full XPath' 
+
+				2> 코드 적용 
+				    # (1) 변경 로직 
+				    #el_img_big = driver.find_element(By.CSS_SELECTOR, ".n3VNCb.KAlRDb") #이전 방법 
+					el_img_big = driver.find_element(By.XPATH, "/html/body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div/div[1]/div[1]/div[3]/div/a/img")
+
+
+					# (2) 추가 로직 
+					opener=urllib.request.build_opener()
+					opener.addheaders=[('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1941.0 Safari/537.36')]
+					urllib.request.install_opener(opener)
+
+
+	(3) Scrapy 
+		1) lib 설치 
+			(env_pyadvanced) C:\~>pip install scrapy
+
+		2) Scrapy shell 
+			<1> shell 실행 
+				(env_pyadvanced) C:\~>scrapy shell 
+			<2> Starting Point 지정
+			    >>> fetch('http://news.naver.com/main/list.nhn?mode=LSD&mid=sec&sid1=001')
+			<3> 다운로드 된 응답확인 
+				>>> view(response)
+			<4> html출력 
+				>>> print(response.text)
+			<5> 뉴스 제목 링크에서 Xpath 추출 
+				//*[@id="main_content"]/div[2]/ul[1]/li[1]/dl/dt[2]/a
+				//*[@id="main_content"]/div[2]/ul[1]/li[2]/dl/dt[2]/a
+				//*[@id="main_content"]/div[2]/ul[1]/li[3]/dl/dt[2]/a
+				...
+				//*[@id="main_content"]/div[2]/ul[2]/li[6]/dl/dt[2]/a
+				//*[@id="main_content"]/div[2]/ul[2]/li[7]/dl/dt[2]/a
+			<6> Xpath 일반화 
+				//*[@id="main_content"]/div[2]/ul/li/dl/dt[2]/a
+            <7> 뉴스 제목들 확인 
+				>>> response.xpath('//*[@id="main_content"]/div[2]/ul/li/dl/dt[2]/a').extract()
+			<8> 뉴스 회사들 확인 
+			    >>> response.css('.writing::text').extract()
+			<9> 뉴스 내용 미리보기(앞부분) 확인 
+				>>> response.css('.lede::text').extract()
+		
+		3) Scrapy project 
+			<1> 플젝 생성 
+				(env_pyadvanced) C:\~>scrapy startproject naverscraper
+			<2> spiders 폴더에 들어감 
+				(env_pyadvanced) C:\SOO\PyAdvanced\day06_crawling\naverscraper\naverscraper\spiders>
+			<3> spider('newsbot.py') 생성 
+				(env_pyadvanced) C:~\spiders>scrapy genspider newsbot news.naver.com/main/list.nhn?mode=LSD&mid=sec&sid1=001
+			<4> 'newsbot.py' 편집 
+				import scrapy
+
+				class NewsbotSpider(scrapy.Spider):
+					name = 'newsbot'
+					start_urls = ['http://news.naver.com/main/list.nhn?mode=LSD&mid=sec&sid1=001']
+
+					def parse(self, response):
+						titles = response.xpath('//*[@id="main_content"]/div[2]/ul/li/dl/dt[2]/a').extract()
+						authors = response.css('.writing::text').extract()
+						previews = response.css('.lede::text').extract()
+						
+						for item in zip(titles, authors, previews):
+							scraped_info = {
+								'title': item[0].strip(), 
+								'author': item[1].strip(), 
+								'preview': item[2].strip()
+							}
+							yield scraped_info
+
+
+			<5> 'settings.py' 수정
+				1> 하단에 추가 
+					FEED_FORMAT = "csv"
+					FEED_URI = "naver_news.csv"
+
+					FEED_EXPORT_ENCODING="utf-8-sig"
+
+				2> 수정 
+					ROBOTSTXT_OBEY = False
+
+			<6> newsbot.py 실행 
+				(env_pyadvanced) C:\~\spiders>scrapy crawl newsbot
+
+			<7> 'naver_news.csv'파일에 결과 저장 확인 
+
+-----
+넘파이
+판다스
+맷플롯
+AI ( 텐서플로,케라스,파이토치 )
+몽고 ( noSql )
+크롤링
+ <서비스 데이터 준비 >
+ 1) 주제선정
+ 2) 데이터채굴 
+	- 다운로드 JSON/CSV/EXCEL...
+	- 크롤링
+ 3) 데이터 정제 후 분석/시각화
+	- 정제 : 판다스
+ 4) (옵션) 판단/예측 -> '모델'생성
+ 5) 서비스를 위한 정제된 데이터 영구저장
+	- noSql ( MongoDB )
+	- Sql ( Oracle, Mysql, ...)
+	- Files ( imgs,json,csv,excel,...)
+ 6) 추후 '웹 or 앱'으로 서비스
