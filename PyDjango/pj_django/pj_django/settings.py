@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'soosapp.apps.SoosappConfig'
+    'soosapp.apps.SoosappConfig' #이부분 추가
 ]
 
 MIDDLEWARE = [

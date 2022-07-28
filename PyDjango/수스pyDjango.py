@@ -401,5 +401,93 @@
 			http://127.0.0.1:8000/soosapp/list
 
 
-[ 'Part2' ] ######## 복습 ########
+[ 'Part2' ] 질의 집합 # 07-28일 수업
+
+'soosapp/views.py'의 'def list(request):' 안에서 테스팅
+
+1. WHERE
+	#addresses =  Address.objects.all().values()
+    addresses =  Address.objects.filter(name='홍길동').values() # 원하는 조건을 건다
+
+	#결과) select * from ADDRESS where name='홍길동' <- 조건을 거는 셀렉문처럼 조건을 걸어서 출력
+
+2. AND
+	addresses =  Address.objects.filter(name='홍길동', addr='서울시').values() 
+
+	#결과) select * from ADDRESS where name='홍길동' and ADDR='서울시'	
+
+3. OR
+	
+	addresses =  Address.objects.filter(name='홍길동').values() | Address.objects.filter(addr='서울시').values()
+
+	또는
+
+	from django.db.models import Q # 선언해줘야댐!
+	... 
+	addresses =  Address.objects.filter(Q(name='홍길동') | Q(addr='서울시')).values()
+
+	#결과) select * from ADDRESS where NAME='홍길동' or ADDR='서울시'
+
+4. FIELD LOOKUP 
+	addresses =  Address.objects.filter(name__startswith='이')
+
+    또는 
+
+	addresses =  Address.objects.filter(name__startswith='이').values()
+
+
+	#결과) select * from ADDRESS where NAME like '이%'
+
+	cf) __XXX 키워드
+		키워드 명		설명
+		contains	Contains the phrase #문구가 들어가 있는지 확인, 문자열 포함여부 확인
+		icontains	Same as contains, but case-insensitive #문구가 들어가 있는지 확인, 문자열 포함여부 확인 하지만 대소문자를 구분 X
+		date	    Matches a date #객체의 날짜,시간을 표시
+		day	        Matches a date (day of month, 1-31) (for dates) # 날짜에서 ('일',1-31)을 표시
+		endswith	Ends with #문자열이 지정된 접미사(내가 지정하는 단어)로 끝나는 여부를 확인하는 데 사용
+		iendswith	Same as endswidth, but case-insensitive # endswith 와 같은 뜻이지만 대소문자를 구분하지 않는다.
+		exact	    An exact match # 정확히 일치하는 문자열을 찾는다.
+		iexact	    Same as exact, but case-insensitive # exact 와 같지만 대소문자를 구분하지 않는다.
+		in	        Matches one of the values # 조건의 값 중 하나라도 일치하면 값을 반환하여 준다.
+		isnull	    Matches NULL values # null=(결측값)이 표현된 곳은 Ture 값으로 반환시켜 준다.
+		gt	        Greater than # DataFrame의 크기 비교를 수행하는 메서드, 보다 큼, <
+		gte	        Greater than, or equal to # DataFrame의 크기 비교를 수행하는 메서드, 보다 크거나 같음, <= ,ge로 표기
+		hour	    Matches an hour (for datetimes) #시간에서 '시'를 표시
+		lt	        Less than # DataFrame의 크기 비교를 수행하는 메서드, 보다 작음, >
+		lte	        Less than, or equal to # DataFrame의 크기 비교를 수행하는 메서드, 보다 작거나 같음, >= ,le로 표기
+		minute	    Matches a minute (for datetimes) # 시간에서 '분'을 표시
+		month	    Matches a month (for dates) # 날짜에서 '달'을 표시
+		quarter	    Matches a quarter of the year (1-4) (for dates) # 연중 1~4분기를 표시해줌
+		range	    Match between # 연속된 숫자(정수) 를 만들어주는 함수, x에서 x 까지 안에 포함된 모든 정수를 표시
+		regex	    Matches a regular expression # 정규식, 문자열이 패턴과 일치하는지에 대한 값을 찾아보는 함수, 'import re' 로 사용
+		# 정규식이란? : 텍스트 편집기와 프로그래밍 언어에서 문자열의 검색과 치환을 위해 지원
+		iregex	    Same as regex, but case-insensitive # regex와 같지만 대소문자를 구분하지 않음.
+		second	    Matches a second (for datetimes) #시간에소 '초'를 표시
+		startswith	Starts with #문자열이 지정된 접미사(내가 지정하는 단어)로 시작하는 여부를 확인하는 데 사용
+		istartswith	Same as startswith, but case-insensitive # startswith 과 같지만 대소문자를 구분하지 않음
+		time	    Matches a time (for datetimes) # 객체의 시간을 표시, 'import time' 으로 사용
+		week	    Matches a week number (1-53) (for dates) # 1년을 '주'로 표시해 준다.
+		week_day	Matches a day of week (1-7) 1 is sunday # 정수로 요일을 반환합니다. 월요일은 0이고 일요일은 6입니다
+		iso_week_day	Matches a ISO 8601 day of week (1-7) 1 is monday # 정수로 요일을 반환합니다. 월요일은 1이고 일요일은 7입니다
+		# ISO 8601 =  문자열의 형태로 시간을 표현하는 방법을 기술
+		iso_year    Matches an ISO 8601 year (for dates) # 정수로 '년'을 표기
+		eq			# equal, DataFrame의 크기 비교를 수행하는 메서드, 같음, == 
+		ne			# not equal, DataFrame의 크기 비교를 수행하는 메서드, 같지 않음 , != ,ne로 표기
+
+5. ORDER BY
+	(1) ASC
+		addresses = Address.objects.all().order_by('name').values()
+
+		#결과) select * from ADDRESS order by NAME
+
+	(2) DESC  
+		addresses =  Address.objects.all().order_by('-name').values() #desc는 - 로 표시!
+
+		#결과) select * from ADDRESS order by NAME
+
+	(3) 여러번의 ORDER BY 
+		addresses =  Address.objects.all().order_by('-name', 'addr', '-id').values()
 		
+		#결과) select * from ADDRESS order by NAME desc, ADDR asc, ID desc
+
+[ 'Part3' ] ##### 여기 부터 #####	

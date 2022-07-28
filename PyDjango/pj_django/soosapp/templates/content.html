@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<style>
+	a{text-decoration:none}
+</style>
+<meta charset="utf-8">
+<center>
+	<font color='gray' size='4' face='휴먼편지체'>
+	<hr width='600' size='2' color='gray' noshade>
+	<h3>Django Board</h3>
+	<font color='gray' size='4' face='휴먼편지체'>
+	<a href='../gwrite'>글쓰기</a>
+	</font>
+	<hr width='600' size='2' color='gray' noshade>
+	</font>
+	
+	<table border='2' width='600' align='center' noshade>
+	<tr>
+	<td width='20%' align='center'>No</td>
+	<td>{{address.id}}</td>
+	</tr>
+	<tr>
+	<td width='20%' align='center'>Writer</td>
+	<td>{{address.write}}</td>
+	</tr>
+	<tr>
+	<td align='center'>E-mail</td>
+	<td>{{address.email}}</td>
+	</tr>
+	<tr>
+	<td align='center'>Subject</td>
+	<td>{{address.subject}}</td>
+	</tr>
+	<tr>
+	<td align='center'>Content</td>
+	<td>{{address.content}}</td>
+	</tr>
+	</table>
+	
+	<hr width='600' size='2' color='gray' noshade>
+	<font color='gray' size='4' face='휴먼편지체'>
+	<a href="{% url "gupdate" address.id %}">수정</a>
+	 &nbsp;&nbsp;| 
+	<a href="{% url "gdelete" address.id %}">삭제</a>
+	 &nbsp;&nbsp;| 
+	<a href='../glist'>목록</a>
+	</font>
+	<hr width='600' size='2' color='gray' noshade>
+</center>

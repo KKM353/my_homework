@@ -14,8 +14,7 @@
 			a { text-decoration:none }
 		</style>
         {% load static %}
-			<script src="{% static '/js/trim.js' %}"></script>
-		<script src="js/trim.js"></script>
+		<script src="{% static '/js/trim.js' %}"></script>
 		<script language="javascript"> 
 		    function check(){
 				var namevalOld = f.name.value;
@@ -82,9 +81,8 @@
 	   <h1>
 			Address Write with Django
 	   </h1>
-       <form name="f" action="write_ok/" method="post">
-        {% csrf_token %}
-	   <form name="f" action="" method="post">
+	   <form name="f" action="write_ok/" method="post">
+            {% csrf_token %}
 		   <table border="1" width="300" height="200">
 			  <tr>
 				 <td width="30%" colspan="2" align="center"><h2>입력폼</h2></td> 
