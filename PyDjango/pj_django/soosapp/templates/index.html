@@ -4,4 +4,12 @@
     
     <a href="list">주소록</a><br/>
     <a href="glist">게시판</a><br/>
+    </br><br/>
+
+    <!--login_ok_user: {{request.session.login_ok_user}} -->
+    {% if request.session.login_ok_user %}
+        <a href="logout">로그아웃</a><br/>
+    {% else %}
+        <a href="login">로그인</a><br/>
+    {% endif %}
 </center>

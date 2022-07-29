@@ -11,3 +11,11 @@ class Gesipan(models.Model):
     subject = models.TextField()
     content = models.TextField()
     tdate = models.DateTimeField()
+    
+class Member(models.Model):
+    name = models.CharField(max_length=30)
+    email = models.TextField(primary_key=True)
+    pwd = models.CharField(max_length=30)
+    phone = models.CharField(max_length=50)
+    rdate = models.DateTimeField()
+    udate = models.DateTimeField()

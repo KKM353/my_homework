@@ -1,3 +1,4 @@
+from multiprocessing import context
 from re import template
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -9,7 +10,8 @@ from .models import Address, Gesipan
 
 def index(request):
     temlate = loader.get_template('index.html')
-    return HttpResponse(temlate.render())
+    #return HttpResponse(temlate.render())
+    return HttpResponse(temlate.render({}, request)) # 반드시 request 넘겨줘야함!!
 
 from django.db.models import Q
 def list(request): # CRUD중 R에 해당하는 Read 를 담당하는 메서드
@@ -121,3 +123,55 @@ def gupdate_ok(request, id):
     address.content = c
     address.save()
     return HttpResponseRedirect(reverse('glist'))
+
+from django.shortcuts import redirect, render #방법2
+def login(request):
+    template = loader.get_template('login.html') #방법1
+    return HttpResponse(template.render({}, request)) #방법1
+    #return render(request,'login.html') #방법2 
+
+from .models import Member 
+def login_ok(request):
+    #email = request.POST['email']
+    #pwd = request.POST['pwd']
+    email = request.POST.get('email', None)
+    pwd = request.POST.get('pwd', None)
+    print("email", email, "pwd", pwd)
+    
+    try:
+        member = Member.objects.get(email=email)
+    except Member.DoesNotExist:
+        member = None
+    print("member", member)
+    
+    result = 0
+    if member != None:
+        print("해당 email회원 존재함")
+        if member.pwd == pwd:
+            print("비밀번호까지 일치")
+            result = 2
+            
+            print("member.email:", member.email) # 방법1
+            request.session['login_ok_user'] = member.email # 방법1
+            
+            #session_id = request.session.session_key # 방법2
+            #print("sseesion.id:", session_id) # 방법2
+            #request.session['login_ok_user'] = session_id # 방법2
+        else:
+            print("비밀번호 틀림")
+            result = 1
+    else:
+        print("해당 email회원 존재하지 않음")
+        result = 0
+        
+    temlate = loader.get_template("login_ok.html")
+    context = {
+        'result': result
+    }
+    return HttpResponse(temlate.render(context, request))
+
+def logout(request):
+    if request.session.get('login_ok_user'):
+        request.session.clear() # 서버측의 해당 user의 session방을 초기화
+        #request.session.flush() # 서버측의 해당 user의 session방을 삭제
+    return redirect("../") # redirect 다시 요청? 뜻을 찾아보자

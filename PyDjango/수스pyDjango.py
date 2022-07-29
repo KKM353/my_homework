@@ -99,7 +99,8 @@
 
 		def index(request):
 			temlate = loader.get_template('index.html')
-			return HttpResponse(temlate.render())
+			#return HttpResponse(temlate.render()) # 나중에 session변수값을 가져오지 못함
+			return HttpResponse(temlate.render({}, request)) #반드시!! request를 넘겨줘야 함
 
 	(3) pj_django/pj_django/settings.py 수정 
 		INSTALLED_APPS = [
@@ -490,4 +491,187 @@
 		
 		#결과) select * from ADDRESS order by NAME desc, ADDR asc, ID desc
 
-[ 'Part3' ] ##### 여기 부터 #####	
+# 07 29 세션 공부 이거 매우 중요함!!
+
+[ 'Part3' ] 세션 (Session)
+1. 모델즈( Models	)
+	(1) soosapp/models.py에 추가 
+		...
+		class Member(models.Model):
+			name = models.CharField(max_length=30)
+			email = models.TextField(primary_key=True) #id필드가 따로 생성되지 않게 함
+			pwd = models.CharField(max_length=30)
+			phone = models.CharField(max_length=50)
+			rdate = models.DateTimeField()
+			udate = models.DateTimeField()
+
+	(2) soosapp/migrations 명령어로 생성 
+		(env_django) C:\SOO\PyDjango\pj_django> py manage.py makemigrations soosapp
+		#결과) soosapp\migrations\0003_member.py 생성확인 ( Create model Member 됨 )
+
+	(3) 적용 (마이그레트) 
+		(env_django) C:\SOO\PyDjango\pj_django> py manage.py migrate
+		#결과) Applying soosapp.0003_member... OK ( SQLite DBMS에 적용 됨 ) 
+
+	(4) 위에서 실행된 MySQL의 SQL은 아래와 같음 
+		create table Member (
+			name varchar(30), 
+			email varchar(50) primary key, 
+			pwd varchar(30),
+			phone varchar(50),
+			rdate datetime, 
+			udate datetime	
+		);
+
+	(5) DB테이블에 데이터 삽입
+		(env_django) C:\SOO\PyDjango\pj_django> py manage.py shell
+
+		>>> from soosapp.models import Member
+		>>> Member.objects.all()
+
+		>>> from django.utils import timezone
+		>>> nowDatetime = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+		>>> member = Member(name='홍길동', email='hong@hanmail.net', pwd='1234', phone='0101231234', rdate=nowDatetime, udate=nowDatetime)
+		>>> member.save()
+		>>> member = Member(name='이순신', email='lee@hanmail.net', pwd='1234', phone='0101231235', rdate=nowDatetime, udate=nowDatetime)
+		>>> member.save()
+		>>> Member.objects.all().values()
+
+
+2. login 
+	(1) templates/login.html 생성 
+		...
+		{% load static %}
+		<script src="{% static '/js/trim.js' %}"></script>
+		...
+		<form name="f" action="login_ok/" method="post">
+        {% csrf_token %}
+		...
+
+	(2) soosapp/views.py
+		from django.shortcuts import redirect, render #방법2
+		def login(request):
+			#template = loader.get_template('login.html') #방법1
+			#return HttpResponse(template.render({}, request)) #방법1
+			return render(request,'login.html') #방법2 
+
+	(3) soosapp/urls.py 
+		path('login/', views.login, name='login'), #추가
+
+	(4) templates/index.html 
+		<a href="login">로그인</a>
+
+	(5) 테스트
+		1) 서버실행 
+			(env_django) C:\SOO\PyDjango\pj_django>py manage.py runserver 
+	
+		2) 호출 
+			http://127.0.0.1:8000/soosapp/
+
+3. login_ok
+	(1) soosapp/urls.py
+		path('login/login_ok/', views.login_ok, name='login_ok'), #추가
+
+	(2) soosapp/views.py
+		from .models import Member
+		def login_ok(request):
+			#email = request.POST['email'] #방법1
+			#pwd = request.POST['pwd'] #방법1
+			email = request.POST.get('email', None) #방법2
+			pwd = request.POST.get('pwd', None) #방법2
+			print("email", email, "pwd", pwd)
+			
+			try:
+				member = Member.objects.get(email=email)
+			except Member.DoesNotExist:
+				member = None
+			print("member", member)
+			
+			result = 0
+			if member != None:
+				print("해당 email회원 존재함")
+				if member.pwd == pwd:
+					print("비밀번호까지 일치") 
+					result = 2
+					
+					print("member.email", member.email) #방법1
+					request.session['login_ok_user'] = member.email #방법1
+					
+					#session_id = request.session.session_key #방법2
+					#print("session_id", session_id) #방법2
+					#request.session['login_ok_user'] = session_id #방법2
+				else:
+					print("비밀번호 틀림")
+					result = 1
+			else:
+				print("해당 email회원 존재하지 않음") 
+				result = 0   
+			
+			temlate = loader.get_template("login_ok.html")
+			context = {
+				'result': result, 
+			}
+			return HttpResponse(temlate.render(context, request))
+
+	
+	(3) templates/login_ok.html 생성
+		<script language="javascript">
+			//alert({{result}});
+
+			/*
+			if({{result}} == 0){
+				alert("로긴실패!! (회원 아이디가 존재하지 않음)");
+			}else if({{result}} == 1){
+				alert("로긴실패!! (비밀번호가 틀림)");
+			}else{
+				alert("로긴성공!!");    
+			}
+			*/
+
+			switch({{result}}){
+				case 0:
+					alert("로긴실패!! (회원 아이디가 존재하지 않음)");
+					break;
+				case 1:
+					alert("로긴실패!! (비밀번호가 틀림)");
+					break;
+				case 2:
+					alert("로긴성공!!");
+			}
+			location.href = "../../"
+		</script>
+
+	(4) pj_django/pj_django/settings.py 에 추가
+		TEMPLATE_CONTEXT_PROCESSORS = (
+			'django.core.context_processors.request',
+		)
+
+	    #cf) 확인!! 
+		def index(request):
+			temlate = loader.get_template('index.html')
+			#return HttpResponse(temlate.render()) # 나중에 session변수값을 가져오지 못함
+			return HttpResponse(temlate.render({}, request)) #세션을 사용하려면.. request를 넘겨줘야 함
+
+	
+	(5) templates/index.html 수정 
+		<!-- login_ok_user: {{request.session.login_ok_user}} --> 
+
+		{% if request.session.login_ok_user %}
+			<a href="logout">로그아웃</a>
+		{% else %}
+			<a href="login">로그인</a>
+		{% endif %}
+
+4. logout
+	(1) soosapp/urls.py
+		path('logout/', views.logout, name='logout'), #추가
+
+	(2) soosapp/views.py
+		def logout(request):
+			if request.session.get('login_ok_user'):
+				#request.session.clear() # 서버측의 해당 user의 session방을 초기화
+				request.session.flush() # 서버측의 해당 user의 session방을 삭제
+			return redirect("../")
+		
+		
+['Part4'] ########## 여기부터 ###############

@@ -16,4 +16,7 @@ urlpatterns = [
     path('gdelete/<int:id>', views.gdelete, name='gdelete'), 
     path('gupdate/<int:id>', views.gupdate, name='gupdate'),
     path('gupdate/gupdate_ok/<int:id>', views.gupdate_ok, name='gupdate_ok'),
+    path('login/', views.login, name='login'),
+    path('login/login_ok/', views.login_ok, name='login_ok'),
+    path('logout/', views.logout, name='logout'),
 ]

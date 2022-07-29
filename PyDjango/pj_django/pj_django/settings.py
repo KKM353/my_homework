@@ -124,3 +124,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# 섹션을 위한 셋팅
+TEMPLATE_CONTEXT_PROCESSORS = (
+			'django.core.context_processors.request',
+)
